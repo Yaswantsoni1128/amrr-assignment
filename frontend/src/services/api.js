@@ -1,61 +1,108 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.API_URL || 'https://amrr-assignment-1.onrender.com/api';
 
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Response interceptor for handling errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
-    return Promise.reject(error);
-  }
-);
+// Custom timeout function using async/await
+const withTimeout = async (promise, timeoutMs = 10000) => {
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), timeoutMs);
+  });
+  
+  return Promise.race([promise, timeoutPromise]);
+};
 
-// API endpoints
+// Enhanced error handler with async/await
+const handleApiCall = async (apiCall) => {
+  try {
+    const response = await withTimeout(apiCall);
+    return response;
+  } catch (error) {
+    console.error('API Error:', error);
+    
+    if (error.message === 'Request timeout') {
+      throw new Error('Request timed out. Please check your connection and try again.');
+    }
+    
+    if (error.response) {
+      // Server responded with error status
+      const message = error.response.data?.message || 'An error occurred';
+      throw new Error(message);
+    } else if (error.request) {
+      // Request was made but no response received
+      throw new Error('Unable to connect to server. Please check your connection.');
+    } else {
+      // Something else happened
+      throw new Error(error.message || 'An unexpected error occurred');
+    }
+  }
+};
+
+// API endpoints with async/await
 export const itemsAPI = {
   // Get all items
-  getAll: () => api.get('/items'),
+  getAll: async () => {
+    return await handleApiCall(api.get('/items'));
+  },
   
   // Get single item by ID
-  getById: (id) => api.get(`/items/${id}`),
+  getById: async (id) => {
+    if (!id) throw new Error('Item ID is required');
+    return await handleApiCall(api.get(`/items/${id}`));
+  },
   
   // Create new item with form data (for file upload)
-  create: (formData) => {
-    return api.post('/items', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  create: async (formData) => {
+    if (!formData) throw new Error('Form data is required');
+    
+    return await handleApiCall(
+      api.post('/items', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    );
   },
   
   // Update item
-  update: (id, formData) => {
-    return api.put(`/items/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  update: async (id, formData) => {
+    if (!id) throw new Error('Item ID is required');
+    if (!formData) throw new Error('Form data is required');
+    
+    return await handleApiCall(
+      api.put(`/items/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    );
   },
   
   // Delete item
-  delete: (id) => api.delete(`/items/${id}`),
+  delete: async (id) => {
+    if (!id) throw new Error('Item ID is required');
+    return await handleApiCall(api.delete(`/items/${id}`));
+  },
   
   // Send enquiry
-  sendEnquiry: (id, enquiryData) => {
-    return api.post(`/enquiry/${id}`, enquiryData);
+  sendEnquiry: async (id, enquiryData) => {
+    if (!id) throw new Error('Item ID is required');
+    if (!enquiryData) throw new Error('Enquiry data is required');
+    
+    return await handleApiCall(api.post(`/enquiry/${id}`, enquiryData));
   },
   
   // Seed database (for development)
-  seed: () => api.post('/seed'),
+  seed: async () => {
+    return await handleApiCall(api.post('/seed'));
+  },
 };
 
 // Utility function to get image URL
@@ -64,7 +111,19 @@ export const getImageUrl = (filename) => {
   return `${API_BASE_URL.replace('/api', '')}/uploads/${filename}`;
 };
 
-// Health check
-export const healthCheck = () => api.get('/health');
+// Health check with async/await
+export const healthCheck = async () => {
+  return await handleApiCall(api.get('/health'));
+};
+
+// Test API connection
+export const testConnection = async () => {
+  try {
+    await healthCheck();
+    return { success: true, message: 'Connected to API successfully' };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
 
 export default api; 
