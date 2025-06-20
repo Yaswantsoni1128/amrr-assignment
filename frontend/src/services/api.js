@@ -10,19 +10,10 @@ const api = axios.create({
   },
 });
 
-// Custom timeout function using async/await
-const withTimeout = async (promise, timeoutMs = 10000) => {
-  const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Request timeout')), timeoutMs);
-  });
-  
-  return Promise.race([promise, timeoutPromise]);
-};
-
 // Enhanced error handler with async/await
 const handleApiCall = async (apiCall) => {
   try {
-    const response = await withTimeout(apiCall);
+    const response = await apiCall;
     return response;
   } catch (error) {
     console.error('API Error:', error);
