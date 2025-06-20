@@ -4,7 +4,10 @@ A full-stack web application for managing items with image uploads, detailed vie
 
 ![AMRR Items](https://img.shields.io/badge/AMRR-Items-blue?style=for-the-badge&logo=react)
 ![Version](https://img.shields.io/badge/version-1.0.0-green?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge)
+
+## Live URL:
+### Frontend: https://amrr-assignment-eight.vercel.app/
+### Backend: https://amrr-assignment-1.onrender.com
 
 ## 🌟 Features
 
