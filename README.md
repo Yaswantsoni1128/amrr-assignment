@@ -6,7 +6,7 @@ A full-stack web application for managing items with image uploads, detailed vie
 ![Version](https://img.shields.io/badge/version-1.0.0-green?style=for-the-badge)
 
 ## Live URL:
-### Frontend: https://amrr-assignment-eight.vercel.app/
+### Frontend: https://amrr-assignment-git-main-yaswants-projects.vercel.app/
 ### Backend: https://amrr-assignment-1.onrender.com
 
 ## 🌟 Features
